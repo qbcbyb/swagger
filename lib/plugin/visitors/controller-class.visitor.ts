@@ -1,6 +1,6 @@
 import { compact, head } from 'lodash';
 import * as ts from 'typescript';
-import { ApiResponse, ApiOperation } from '../../decorators';
+import { ApiResponse, ApiOperation } from '@nestjs/swagger';
 import { OPENAPI_NAMESPACE } from '../plugin-constants';
 import {
   getDecoratorArguments,

@@ -4,7 +4,7 @@ import {
   ApiHideProperty,
   ApiProperty,
   ApiPropertyOptional
-} from '../../decorators';
+} from '@nestjs/swagger';
 import { PluginOptions } from '../merge-options';
 import { METADATA_FACTORY_NAME } from '../plugin-constants';
 import {
