@@ -19,6 +19,9 @@
     "prerelease": "npm run build",
     "release": "release-it"
   },
+  "publishConfig": {
+      "registry": "http://registry.npmjs.org"
+  },
   "dependencies": {
     "@nestjs/swagger": "^4.4.0",
     "lodash": "4.17.15",
