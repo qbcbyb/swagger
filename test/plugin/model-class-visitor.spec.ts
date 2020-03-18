@@ -16,6 +16,7 @@ import {
   es5CreateCatDtoText,
   es5CreateCatDtoTextTranspiled
 } from './fixtures/es5-class.dto';
+import { loginUserText, loginUserTranspiled } from './fixtures/login-user.dto';
 
 describe('API model properties', () => {
   it('should add the metadata factory when no decorators exist', () => {
@@ -37,6 +38,27 @@ describe('API model properties', () => {
       }
     });
     expect(result.outputText).toEqual(createCatDtoTextTranspiled);
+  });
+
+  it('should generate description when class had comments', () => {
+    const options: ts.CompilerOptions = {
+      module: ts.ModuleKind.ESNext,
+      target: ts.ScriptTarget.ESNext,
+      newLine: ts.NewLineKind.LineFeed,
+      noEmitHelpers: true,
+      strict: true
+    };
+    const filename = 'login-user.dto.ts';
+    const fakeProgram = ts.createProgram([filename], options);
+
+    const result = ts.transpileModule(loginUserText, {
+      compilerOptions: options,
+      fileName: filename,
+      transformers: {
+        before: [before({}, fakeProgram)]
+      }
+    });
+    expect(result.outputText).toEqual(loginUserTranspiled);
   });
 
   it('should add partial metadata factory when some decorators exist', () => {

@@ -58,7 +58,7 @@ export class CreateCatDto {
         this.status = Status.ENABLED;
     }
     static _OPENAPI_METADATA_FACTORY() {
-        return { name: { required: true, type: () => String }, age: { required: true, type: () => Number, default: 3, minimum: 0, maximum: 10 }, tags: { required: true, type: () => [String] }, status: { required: true, default: Status.ENABLED, enum: Status }, status2: { required: false, enum: Status }, statusArr: { required: false, enum: Status, isArray: true }, oneValueEnum: { required: false, enum: OneValueEnum }, oneValueEnumArr: { required: false, enum: OneValueEnum }, breed: { description: "this is breed", type: String, required: false }, nodes: { required: true, type: () => [Object] }, date: { required: true, type: () => Date } };
+        return { name: { required: true, type: () => String }, age: { required: true, type: () => Number, default: 3, minimum: 0, maximum: 10 }, tags: { required: true, type: () => [String] }, status: { required: true, default: Status.ENABLED, enum: Status }, status2: { required: false, enum: Status }, statusArr: { required: false, enum: Status, isArray: true }, oneValueEnum: { required: false, enum: OneValueEnum }, oneValueEnumArr: { required: false, enum: OneValueEnum }, breed: { required: false, type: () => String, description: "this is breed" }, nodes: { required: true, type: () => [Object] }, date: { required: true, type: () => Date } };
     }
 }
 __decorate([

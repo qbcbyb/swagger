@@ -1,3 +1,22 @@
+# Notice & Usage
+This is an extension based on [@nestjs/swagger](https://github.com/nestjs/swagger), which can automatically generate the description and example of swagger according to `JSDoc` on the basis of `@nestjs/swagger`
+
+After `npm i --save @qbcbyb/nestjs_swagger_plugin`, you can make the configuration in nest-cli.json like this
+
+```
+{
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "src",
+  "compilerOptions": {
+    "plugins": ["@qbcbyb/nestjs_swagger_plugin"]
+  }
+}
+```
+**There is no need to configure `@nestjs/swagger/plugin` above, because the corresponding call has been integrated in this plug-ins.**
+
+**You can check this PR [[auto generate description from comments]](https://github.com/nestjs/swagger/pull/585) for more information.**
+
+
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo_text.svg" width="320" alt="Nest Logo" /></a>
 </p>
@@ -25,7 +44,7 @@
 ## Installation
 
 ```bash
-$ npm i --save @nestjs/swagger
+$ npm i --save @qbcbyb/nestjs_swagger_plugin
 ```
 
 ## Quick Start

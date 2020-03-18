@@ -1,17 +1,12 @@
-import { compact, head } from 'lodash';
-import * as ts from 'typescript';
-import { ApiResponse, ApiOperation } from '@nestjs/swagger';
-import { OPENAPI_NAMESPACE } from '../plugin-constants';
-import {
-  getDecoratorArguments,
-  getMainCommentAnExamplesOfNode
-} from '../utils/ast-utils';
+import { ApiOperation } from '@nestjs/swagger';
+import { getDecoratorArguments } from '@nestjs/swagger/dist/plugin/utils/ast-utils';
 import {
   getDecoratorOrUndefinedByNames,
-  getTypeReferenceAsString,
-  hasPropertyKey,
-  replaceImportPath
-} from '../utils/plugin-utils';
+  hasPropertyKey
+} from '@nestjs/swagger/dist/plugin/utils/plugin-utils';
+import { compact, head } from 'lodash';
+import * as ts from 'typescript';
+import { getMainCommentAnExamplesOfNode } from '../utils/ast-utils';
 import { AbstractFileVisitor } from './abstract.visitor';
 
 export class ControllerClassVisitor extends AbstractFileVisitor {
@@ -21,9 +16,13 @@ export class ControllerClassVisitor extends AbstractFileVisitor {
     program: ts.Program
   ) {
     const typeChecker = program.getTypeChecker();
-    sourceFile = this.updateImports(sourceFile);
 
     const visitNode = (node: ts.Node): ts.Node => {
+      if (!this.hasOpenApiDeclared && ts.isImportEqualsDeclaration(node)) {
+        if (this.checkIsOpenApiImport(node)) {
+          this.updateImports(sourceFile);
+        }
+      }
       if (ts.isMethodDeclaration(node)) {
         return this.addDecoratorToNode(
           node,
@@ -50,21 +49,7 @@ export class ControllerClassVisitor extends AbstractFileVisitor {
     node.decorators = Object.assign(
       [
         ...this.createApiOperationOrEmptyInArray(node, nodeArray, sourceFile),
-        ...nodeArray,
-        ts.createDecorator(
-          ts.createCall(
-            ts.createIdentifier(`${OPENAPI_NAMESPACE}.${ApiResponse.name}`),
-            undefined,
-            [
-              this.createDecoratorObjectLiteralExpr(
-                node,
-                typeChecker,
-                ts.createNodeArray(),
-                hostFilename
-              )
-            ]
-          )
-        )
+        ...nodeArray
       ],
       { pos, end }
     );
@@ -110,7 +95,9 @@ export class ControllerClassVisitor extends AbstractFileVisitor {
         return [
           ts.createDecorator(
             ts.createCall(
-              ts.createIdentifier(`${OPENAPI_NAMESPACE}.${ApiOperation.name}`),
+              ts.createIdentifier(
+                `${this.openApiNamespace}.${ApiOperation.name}`
+              ),
               undefined,
               apiOperationDecoratorArguments
             )
@@ -119,84 +106,5 @@ export class ControllerClassVisitor extends AbstractFileVisitor {
       }
     }
     return [];
-  }
-
-  createDecoratorObjectLiteralExpr(
-    node: ts.MethodDeclaration,
-    typeChecker: ts.TypeChecker,
-    existingProperties: ts.NodeArray<
-      ts.PropertyAssignment
-    > = ts.createNodeArray(),
-    hostFilename: string
-  ): ts.ObjectLiteralExpression {
-    const properties = [
-      ...existingProperties,
-      this.createStatusPropertyAssignment(node, existingProperties),
-      this.createTypePropertyAssignment(
-        node,
-        typeChecker,
-        existingProperties,
-        hostFilename
-      )
-    ];
-    return ts.createObjectLiteral(compact(properties));
-  }
-
-  createTypePropertyAssignment(
-    node: ts.MethodDeclaration,
-    typeChecker: ts.TypeChecker,
-    existingProperties: ts.NodeArray<ts.PropertyAssignment>,
-    hostFilename: string
-  ) {
-    if (hasPropertyKey('type', existingProperties)) {
-      return undefined;
-    }
-    const signature = typeChecker.getSignatureFromDeclaration(node);
-    const type = typeChecker.getReturnTypeOfSignature(signature);
-    if (!type) {
-      return undefined;
-    }
-    let typeReference = getTypeReferenceAsString(type, typeChecker);
-    if (!typeReference) {
-      return undefined;
-    }
-    if (typeReference.includes('node_modules')) {
-      return undefined;
-    }
-    typeReference = replaceImportPath(typeReference, hostFilename);
-    return ts.createPropertyAssignment(
-      'type',
-      ts.createIdentifier(typeReference)
-    );
-  }
-
-  createStatusPropertyAssignment(
-    node: ts.MethodDeclaration,
-    existingProperties: ts.NodeArray<ts.PropertyAssignment>
-  ) {
-    if (hasPropertyKey('status', existingProperties)) {
-      return undefined;
-    }
-    const statusNode = this.getStatusCodeIdentifier(node);
-    return ts.createPropertyAssignment('status', statusNode);
-  }
-
-  getStatusCodeIdentifier(node: ts.MethodDeclaration) {
-    const decorators = node.decorators;
-    const httpCodeDecorator = getDecoratorOrUndefinedByNames(
-      ['HttpCode'],
-      decorators
-    );
-    if (httpCodeDecorator) {
-      const argument = head(getDecoratorArguments(httpCodeDecorator));
-      if (argument) {
-        return argument;
-      }
-    }
-    const postDecorator = getDecoratorOrUndefinedByNames(['Post'], decorators);
-    if (postDecorator) {
-      return ts.createIdentifier('201');
-    }
-    return ts.createIdentifier('200');
   }
 }
