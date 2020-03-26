@@ -189,10 +189,8 @@ export class ModelClassVisitor extends AbstractFileVisitor {
   createDecoratorObjectLiteralExpr(
     node: ts.PropertyDeclaration | ts.PropertySignature,
     typeChecker: ts.TypeChecker,
-    existingProperties: ts.NodeArray<
-      ts.PropertyAssignment
-    > = ts.createNodeArray(),
-    options: PluginOptions = {},
+    existingProperties: ts.NodeArray<ts.PropertyAssignment>,
+    options: PluginOptions,
     hostFilename = '',
     sourceFile?: ts.SourceFile
   ): ts.ObjectLiteralExpression {
@@ -204,9 +202,15 @@ export class ModelClassVisitor extends AbstractFileVisitor {
         sourceFile,
         true
       );
-      if (!hasPropertyKey('description', existingProperties) && comments) {
+      if (
+        !hasPropertyKey(options.dtoKeyOfComment, existingProperties) &&
+        comments
+      ) {
         descriptionPropertyWapper.push(
-          ts.createPropertyAssignment('description', ts.createLiteral(comments))
+          ts.createPropertyAssignment(
+            options.dtoKeyOfComment,
+            ts.createLiteral(comments)
+          )
         );
       }
       if (

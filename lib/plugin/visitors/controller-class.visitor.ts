@@ -8,12 +8,14 @@ import { compact, head } from 'lodash';
 import * as ts from 'typescript';
 import { getMainCommentAnExamplesOfNode } from '../utils/ast-utils';
 import { AbstractFileVisitor } from './abstract.visitor';
+import { PluginOptions } from '../merge-options';
 
 export class ControllerClassVisitor extends AbstractFileVisitor {
   visit(
     sourceFile: ts.SourceFile,
     ctx: ts.TransformationContext,
-    program: ts.Program
+    program: ts.Program,
+    options: PluginOptions
   ) {
     const typeChecker = program.getTypeChecker();
 
@@ -27,6 +29,7 @@ export class ControllerClassVisitor extends AbstractFileVisitor {
         return this.addDecoratorToNode(
           node,
           typeChecker,
+          options,
           sourceFile.fileName,
           sourceFile
         );
@@ -39,6 +42,7 @@ export class ControllerClassVisitor extends AbstractFileVisitor {
   addDecoratorToNode(
     compilerNode: ts.MethodDeclaration,
     typeChecker: ts.TypeChecker,
+    options: PluginOptions,
     hostFilename: string,
     sourceFile: ts.SourceFile
   ): ts.MethodDeclaration {
@@ -48,7 +52,12 @@ export class ControllerClassVisitor extends AbstractFileVisitor {
 
     node.decorators = Object.assign(
       [
-        ...this.createApiOperationOrEmptyInArray(node, nodeArray, sourceFile),
+        ...this.createApiOperationOrEmptyInArray(
+          node,
+          nodeArray,
+          options,
+          sourceFile
+        ),
         ...nodeArray
       ],
       { pos, end }
@@ -59,9 +68,10 @@ export class ControllerClassVisitor extends AbstractFileVisitor {
   createApiOperationOrEmptyInArray(
     node: ts.MethodDeclaration,
     nodeArray: ts.NodeArray<ts.Decorator>,
+    options: PluginOptions,
     sourceFile: ts.SourceFile
   ) {
-    const descriptionKey = 'description';
+    const keyToGenerate = options.controllerKeyOfComment;
     const apiOperationDecorator = getDecoratorOrUndefinedByNames(
       [ApiOperation.name],
       nodeArray
@@ -78,12 +88,12 @@ export class ControllerClassVisitor extends AbstractFileVisitor {
         !(apiOperationOptionsProperties = apiOperationOptions.properties as ts.NodeArray<
           ts.PropertyAssignment
         >) ||
-        !hasPropertyKey(descriptionKey, apiOperationOptionsProperties)) &&
+        !hasPropertyKey(keyToGenerate, apiOperationOptionsProperties)) &&
       // Has comments
       ([comments] = getMainCommentAnExamplesOfNode(node, sourceFile))[0]
     ) {
       const properties = [
-        ts.createPropertyAssignment(descriptionKey, ts.createLiteral(comments)),
+        ts.createPropertyAssignment(keyToGenerate, ts.createLiteral(comments)),
         ...(apiOperationOptionsProperties ?? ts.createNodeArray())
       ];
       const apiOperationDecoratorArguments: ts.NodeArray<ts.Expression> = ts.createNodeArray(

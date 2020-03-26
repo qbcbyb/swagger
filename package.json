@@ -1,6 +1,6 @@
 {
   "name": "@qbcbyb/nestjs_swagger_plugin",
-  "version": "4.3.2",
+  "version": "4.3.3",
   "description": "Nest - modern, fast, powerful node.js web framework (@swagger)",
   "author": "Hydrant",
   "license": "MIT",

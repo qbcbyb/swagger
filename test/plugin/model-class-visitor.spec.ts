@@ -19,7 +19,7 @@ import {
 import { loginUserText, loginUserTranspiled } from './fixtures/login-user.dto';
 
 describe('API model properties', () => {
-  it('should add the metadata factory when no decorators exist', () => {
+  it('should add the metadata factory when no decorators exist, and generated propertyKey is title', () => {
     const options: ts.CompilerOptions = {
       module: ts.ModuleKind.ESNext,
       target: ts.ScriptTarget.ESNext,
@@ -34,7 +34,12 @@ describe('API model properties', () => {
       compilerOptions: options,
       fileName: filename,
       transformers: {
-        before: [before({ classValidatorShim: true }, fakeProgram)]
+        before: [
+          before(
+            { classValidatorShim: true, dtoKeyOfComment: 'title' },
+            fakeProgram
+          )
+        ]
       }
     });
     expect(result.outputText).toEqual(createCatDtoTextTranspiled);
