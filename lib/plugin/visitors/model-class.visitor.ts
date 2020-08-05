@@ -94,6 +94,7 @@ export class ModelClassVisitor extends AbstractFileVisitor {
     const metadataFactoryMethod = classMutableNode.members.find(
       member =>
         ts.isMethodDeclaration(member) &&
+        member.modifiers &&
         member.modifiers.some(
           modifier => modifier.kind === ts.SyntaxKind.StaticKeyword
         ) &&
